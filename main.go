@@ -325,10 +325,14 @@ func ParseCmdLine() *State {
 	}
 
 	if s.Mode == "dir" {
-		if strings.HasSuffix(s.Url, "/") == false {
-			// s.Url = s.Url + "/" // glc, fuzz word
+		// glc, fuzz word
+		if !strings.Contains(s.Url,"FUZZ") {
+			if strings.HasSuffix(s.Url, "/") == false {
+				s.Url = s.Url + "/"
+			}
+			s.Url = s.Url + "FUZZ"
 		}
-
+	
 		if strings.HasPrefix(s.Url, "http") == false {
 			// check to see if a port was specified
 			re := regexp.MustCompile(`^[^/]+:(\d+)`)
@@ -592,11 +596,6 @@ func SetupDir(s *State) bool {
 		return s.WildcardForced
 	}
 
-	// glc, fuzz word
-	if !strings.Contains(s.Url,"FUZZ") {
-		s.Url = s.Url + "FUZZ"
-	}
-	
 	return true
 }
 

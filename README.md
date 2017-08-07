@@ -296,3 +296,14 @@ See the LICENSE file.
 ### Thanks
 
 See the THANKS file for people who helped out.
+
+### Added by me
+
+Option `-ns` to ignore certain status codes.
+Option `-nc` to skip the first request that try to connect to the host.
+`FUZZ` to tell the program where to perform the injection
+
+```
+go run main.go -u https://xxx-FUZZ.s3.amazonaws.com/ -w /opt/SecLists/mine/dns.txt -e -v
+go run main.go -u https://www.example.com/FUZZ -w /opt/SecLists/mine/dns.txt -ns 404
+```
