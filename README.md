@@ -297,7 +297,7 @@ See the LICENSE file.
 
 See the THANKS file for people who helped out.
 
-### Added by me
+## Added by me
 
 Option `-ns` to ignore certain status codes.  
 Option `-nc` to skip the first request that try to connect to the host.  
