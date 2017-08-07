@@ -304,6 +304,6 @@ Option `-nc` to skip the first request that try to connect to the host.
 `FUZZ` keyword to tell the program where to perform the injection.  
 
 ```
-go run main.go -u https://xxx-FUZZ.s3.amazonaws.com/ -w /opt/SecLists/mine/dns.txt -e -v
+go run main.go -u https://xxx-FUZZ.s3.amazonaws.com/ -w /opt/SecLists/mine/dns.txt -nc
 go run main.go -u https://www.example.com/FUZZ -w /opt/SecLists/mine/dns.txt -ns 404
 ```
