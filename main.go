@@ -80,7 +80,7 @@ type State struct {
 	ShowIPs        bool
 	ShowCNAME      bool
 	StatusCodes    IntSet
-	NoStatusCodes    IntSet
+	NoStatusCodes    IntSet // glc
 	Threads        int
 	Url            string
 	UseSlash       bool
@@ -97,7 +97,8 @@ type State struct {
 	Terminate      bool
 	StdIn          bool
 	InsecureSSL    bool
-	NoConnectTest  bool
+	NoConnectTest  bool // glc
+	Recurse        bool // glc
 }
 
 type RedirectHandler struct {
@@ -275,6 +276,7 @@ func ParseCmdLine() *State {
 	flag.BoolVar(&s.WildcardForced, "fw", false, "Force continued operation when wildcard found")
 	flag.BoolVar(&s.InsecureSSL, "k", false, "Skip SSL certificate verification")
 	flag.BoolVar(&s.NoConnectTest, "nc", false, "Skip the first request that try to connect to the host (added by glc)")
+	flag.BoolVar(&s.Recurse, "R", false, "Recurse through found directories (added by glc)")
 
 	flag.Parse()
 
@@ -477,6 +479,7 @@ func Process(s *State) {
 
 	// Create goroutines for each of the number of threads
 	// specified.
+	
 	for i := 0; i < s.Threads; i++ {
 		go func() {
 			for {
@@ -489,8 +492,9 @@ func Process(s *State) {
 
 				// Mode-specific processing
 				s.Processor(s, word, resultChan)
+				//fmt.Printf("[!] %d\n", dirResp)
 			}
-
+			
 			// Indicate to the wait group that the thread
 			// has finished.
 			processorGroup.Done()
@@ -633,29 +637,31 @@ func ProcessDirEntry(s *State, word string, resultChan chan<- Result) {
 		suffix = "/"
 	}
 
-	// Try the DIR first
-	dirResp, dirSize := GoGet(s, s.Url, word+suffix, s.Cookies)
-	if dirResp != nil {
-		resultChan <- Result{
-			Entity: word + suffix,
-			Status: *dirResp,
-			Size:   dirSize,
-		}
-	}
-
-	// Follow up with files using each ext.
-	for ext := range s.Extensions {
-		file := word + s.Extensions[ext]
-		fileResp, fileSize := GoGet(s, s.Url, file, s.Cookies)
-
-		if fileResp != nil {
+	if len(s.Extensions) == 0 { // glc, one or another but not both
+		// Try the DIR first
+		dirResp, dirSize := GoGet(s, s.Url, word+suffix, s.Cookies)
+		if dirResp != nil {
 			resultChan <- Result{
-				Entity: file,
-				Status: *fileResp,
-				Size:   fileSize,
+				Entity: word + suffix,
+				Status: *dirResp,
+				Size:   dirSize,
 			}
 		}
-	}
+	} else {
+		// Follow up with files using each ext.
+		for ext := range s.Extensions {
+			file := word + s.Extensions[ext]
+			fileResp, fileSize := GoGet(s, s.Url, file, s.Cookies)
+	
+			if fileResp != nil {
+				resultChan <- Result{
+					Entity: file,
+					Status: *fileResp,
+					Size:   fileSize,
+				}
+			}
+		}
+	}			
 }
 
 func PrintDnsResult(s *State, r *Result) {
